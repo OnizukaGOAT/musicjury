@@ -416,7 +416,7 @@
 // ============================================
 const ADMIN_PASSWORD    = "dj1234";   // <- cambia esto
 const JSONBIN_ACCESS_KEY = "$2a$10$TpycarrmqR3pdoKdcSibHe8biWP1rSIIJZH4WP3zmZnZUrvzE4np.";
-const JSONBIN_BIN_ID    = "6a1971f4ddf5aa59f773d3e4";         // <- dejar vacio la primera vez
+const JSONBIN_BIN_ID    = "6a199624ddf5aa59f7747777";
 
 // ============================================
 //  ESTADO
@@ -424,7 +424,7 @@ const JSONBIN_BIN_ID    = "6a1971f4ddf5aa59f773d3e4";         // <- dejar vacio 
 let songs         = [];
 let ratings       = {};
 let sortMode      = "default";
-let binId         = localStorage.getItem("mj_bin_id") || JSONBIN_BIN_ID;
+let binId         = JSONBIN_BIN_ID;
 let adminUnlocked = false;
 
 // ============================================
@@ -469,13 +469,12 @@ async function createBin() {
         "Content-Type": "application/json",
         "X-Access-Key": JSONBIN_ACCESS_KEY,
         "X-Bin-Name": "musicjury-data",
-        "X-Bin-Private": "true"
+        "X-Bin-Private": "false"
       },
       body: JSON.stringify({ songs: [], ratings: {} })
     });
     const json = await res.json();
     binId = json.metadata.id;
-    localStorage.setItem("mj_bin_id", binId);
     songs   = [];
     ratings = {};
     renderAll();
