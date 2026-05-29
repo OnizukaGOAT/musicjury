@@ -147,16 +147,86 @@
     border: 1px solid var(--border);
     border-radius: 14px;
     overflow: hidden;
-    margin-bottom: 1.5rem;
-    transition: border-color 0.2s;
+    margin-bottom: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
   }
   .song-card:hover { border-color: #3a3a50; }
+  .song-card.expanded { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); margin-bottom: 1.5rem; }
 
+  /* Collapsed header (always visible) */
+  .song-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0.65rem 1rem;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .song-header:hover { background: rgba(255,255,255,0.03); }
+  .song-thumb-small {
+    width: 72px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 7px;
+    flex-shrink: 0;
+    background: var(--border);
+  }
+  .song-header-title {
+    flex: 1;
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .song-header-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .song-header-avg {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    color: var(--accent);
+  }
+  .song-chevron {
+    color: var(--muted);
+    font-size: 12px;
+    transition: transform 0.3s;
+    line-height: 1;
+  }
+  .song-card.expanded .song-chevron { transform: rotate(180deg); }
+
+  /* Expandable body */
+  .song-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .song-card.expanded .song-body { max-height: 900px; }
+
+  /* Video embed */
+  .video-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #000;
+  }
+  .video-wrap iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+  }
   .thumb-wrap {
     position: relative;
     display: block;
     text-decoration: none;
     background: #000;
+    cursor: pointer;
   }
   .thumb-wrap img {
     width: 100%;
@@ -505,6 +575,25 @@ function renderAll() {
   renderAdminList();
 }
 
+function toggleCard(songId) {
+  var card = document.getElementById("card-" + songId);
+  var wasExpanded = card.classList.contains("expanded");
+  document.querySelectorAll(".song-card.expanded").forEach(function(c) {
+    c.classList.remove("expanded");
+    var vw = c.querySelector(".video-wrap");
+    if (vw) vw.innerHTML = "";
+  });
+  if (!wasExpanded) {
+    card.classList.add("expanded");
+    var vw = card.querySelector(".video-wrap");
+    var ytId = card.dataset.ytid;
+    if (vw && ytId) {
+      vw.innerHTML = '<iframe src="https://www.youtube.com/embed/' + ytId + '?autoplay=1&rel=0" allow="autoplay; encrypted-media" allowfullscreen></iframe>';
+    }
+    setTimeout(function() { card.scrollIntoView({ behavior: "smooth", block: "nearest" }); }, 50);
+  }
+}
+
 function renderVoteList() {
   var voter = document.getElementById("voter-name").value.trim();
   var el = document.getElementById("vote-list");
@@ -520,7 +609,7 @@ function renderVoteList() {
 
     var stars = [1,2,3,4,5].map(function(n) {
       return '<span class="star ' + (n <= myScore ? 'lit' : '') + '"' +
-        ' onclick="vote(\'' + song.id + '\',' + n + ')"' +
+        ' onclick="event.stopPropagation();vote(\'' + song.id + '\',' + n + ')"' +
         ' onmouseover="hoverStars(\'' + song.id + '\',' + n + ')"' +
         ' onmouseout="unhoverStars(\'' + song.id + '\',' + myScore + ')"' +
         ' data-song="' + song.id + '" data-val="' + n + '">&#9733;</span>';
@@ -536,24 +625,32 @@ function renderVoteList() {
       rankLabel = '<span style="background:var(--accent);color:#000;font-family:\'Bebas Neue\',sans-serif;font-size:1rem;padding:2px 8px;border-radius:4px;margin-right:6px">#' + pos + '</span>';
     }
 
-    return '<div class="song-card">' +
-      '<a class="thumb-wrap" href="https://www.youtube.com/watch?v=' + song.ytId + '" target="_blank" rel="noreferrer">' +
-        '<img src="https://img.youtube.com/vi/' + song.ytId + '/mqdefault.jpg"' +
-             ' onerror="this.src=\'https://img.youtube.com/vi/' + song.ytId + '/0.jpg\'"' +
-             ' alt="' + song.title + '">' +
-        '<div class="thumb-overlay">' +
-          '<div class="play-btn">&#9654;</div>' +
-          '<div class="thumb-title">' + rankLabel + song.title + '</div>' +
+    var myStarHtml = myScore ? '<span style="color:var(--accent);font-size:13px">&#9733;' + myScore + '</span>' : '';
+
+    return '<div class="song-card" id="card-' + song.id + '" data-ytid="' + song.ytId + '">' +
+      '<div class="song-header" onclick="toggleCard(\'' + song.id + '\')">' +
+        '<img class="song-thumb-small"' +
+          ' src="https://img.youtube.com/vi/' + song.ytId + '/mqdefault.jpg"' +
+          ' onerror="this.src=\'https://img.youtube.com/vi/' + song.ytId + '/0.jpg\'"' +
+          ' alt="' + song.title + '">' +
+        '<span class="song-header-title">' + rankLabel + song.title + '</span>' +
+        '<div class="song-header-meta">' +
+          myStarHtml +
+          (avg !== null ? '<span class="song-header-avg">' + avg + '&#9733;</span>' : '') +
+          '<span class="song-chevron">&#9660;</span>' +
         '</div>' +
-      '</a>' +
-      '<div class="vote-area">' +
-        '<span class="vote-label">Tu voto:</span>' +
-        '<div class="stars" id="stars-' + song.id + '">' + stars + '</div>' +
-        '<span class="confirm" id="confirm-' + song.id + '">&#10003; Guardado</span>' +
       '</div>' +
-      '<div class="results-bar">' +
-        voterHtml +
-        (avg !== null ? '<span class="avg-badge">Media: ' + avg + '</span>' : '') +
+      '<div class="song-body">' +
+        '<div class="video-wrap"></div>' +
+        '<div class="vote-area">' +
+          '<span class="vote-label">Tu voto:</span>' +
+          '<div class="stars" id="stars-' + song.id + '">' + stars + '</div>' +
+          '<span class="confirm" id="confirm-' + song.id + '">&#10003; Guardado</span>' +
+        '</div>' +
+        '<div class="results-bar">' +
+          voterHtml +
+          (avg !== null ? '<span class="avg-badge">Media: ' + avg + '</span>' : '') +
+        '</div>' +
       '</div>' +
     '</div>';
   }).join("");
