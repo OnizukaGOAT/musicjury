@@ -346,8 +346,196 @@
   .empty { text-align: center; padding: 3rem 1rem; color: var(--muted); font-style: italic; }
   .saving { font-size: 12px; color: var(--muted); margin-left: 12px; }
 
-  #panel-vote, #panel-admin, #panel-login { display: none; }
-  #panel-vote.active, #panel-admin.active, #panel-login.active { display: block; }
+  #panel-vote, #panel-admin, #panel-login, #panel-playlist { display: none; }
+  #panel-vote.active, #panel-admin.active, #panel-login.active, #panel-playlist.active { display: block; }
+
+  /* ===== PLAYLIST MODE ===== */
+  .playlist-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 1.4rem;
+    align-items: start;
+  }
+  @media(max-width:720px) { .playlist-layout { grid-template-columns: 1fr; } }
+
+  .player-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .player-video-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #000;
+  }
+  .player-video-wrap iframe { width:100%; height:100%; border:none; display:block; }
+  .player-idle {
+    width:100%; height:100%;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    gap:12px; color:var(--muted); font-size:14px;
+  }
+  .player-idle-icon { font-size:48px; opacity:0.35; }
+
+  .player-info {
+    padding: 1rem 1.2rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .player-info-text { flex:1; min-width:0; }
+  .player-info-title {
+    font-weight:600; font-size:1rem;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .player-info-sub { color:var(--muted); font-size:12px; margin-top:2px; }
+
+  .player-controls {
+    padding: 0.8rem 1.2rem;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    flex-wrap:wrap;
+  }
+  .ctrl-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 0.45rem 1rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display:flex; align-items:center; gap:6px;
+  }
+  .ctrl-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .ctrl-btn.active { background: var(--accent); color:#000; border-color:var(--accent); }
+  .ctrl-btn:disabled { opacity:0.35; cursor:default; }
+
+  /* Queue panel */
+  .queue-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    display:flex; flex-direction:column;
+    max-height: 600px;
+  }
+  .queue-header {
+    padding: 0.9rem 1.2rem;
+    border-bottom: 1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .queue-title {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:1.1rem; letter-spacing:0.06em; color:var(--accent);
+  }
+  .queue-count {
+    background: var(--border);
+    color: var(--muted);
+    border-radius: 2rem;
+    padding: 2px 10px;
+    font-size:12px;
+  }
+  .queue-list {
+    overflow-y: auto;
+    flex:1;
+  }
+  .queue-list::-webkit-scrollbar { width:4px; }
+  .queue-list::-webkit-scrollbar-track { background:transparent; }
+  .queue-list::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+
+  .queue-item {
+    display:flex; align-items:center; gap:10px;
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+    cursor: default;
+  }
+  .queue-item:last-child { border-bottom:none; }
+  .queue-item:hover { background: rgba(255,255,255,0.03); }
+  .queue-item.playing { background: rgba(240,192,64,0.07); border-left:3px solid var(--accent); padding-left:calc(1rem - 3px); }
+  .queue-item-thumb {
+    width:52px; height:35px;
+    object-fit:cover; border-radius:5px; flex-shrink:0;
+    background:var(--border);
+  }
+  .queue-item-title {
+    flex:1; font-size:0.85rem; font-weight:500;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .queue-item.playing .queue-item-title { color:var(--accent); }
+  .queue-remove {
+    background:transparent; border:none; color:var(--muted);
+    cursor:pointer; font-size:16px; line-height:1; padding:2px 4px;
+    border-radius:4px; flex-shrink:0; transition: color 0.2s;
+  }
+  .queue-remove:hover { color:var(--accent2); }
+  .queue-playing-badge {
+    font-size:10px; color:var(--accent); font-weight:700;
+    letter-spacing:0.04em; flex-shrink:0;
+  }
+
+  .queue-empty { text-align:center; padding:2.5rem 1rem; color:var(--muted); font-size:13px; font-style:italic; }
+
+  /* Song list for adding to queue */
+  .add-to-queue-bar {
+    padding: 0.7rem 1rem;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .add-to-queue-bar p { font-size:11px; color:var(--muted); text-align:center; margin-bottom:6px; letter-spacing:0.04em; text-transform:uppercase; }
+
+  /* Song picker to add to queue */
+  .song-picker {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 1.4rem;
+  }
+  .song-picker-header {
+    padding: 0.9rem 1.2rem;
+    border-bottom: 1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between;
+    flex-wrap:wrap; gap:8px;
+  }
+  .song-picker-title { font-family:'Bebas Neue',sans-serif; font-size:1.1rem; letter-spacing:0.06em; color:var(--accent); }
+  .song-picker-hint { font-size:12px; color:var(--muted); }
+  .picker-list { }
+  .picker-item {
+    display:flex; align-items:center; gap:10px;
+    padding: 0.55rem 1rem;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  .picker-item:last-child { border-bottom:none; }
+  .picker-item:hover { background:rgba(255,255,255,0.03); }
+  .picker-item-thumb {
+    width:52px; height:35px;
+    object-fit:cover; border-radius:5px; flex-shrink:0; background:var(--border);
+  }
+  .picker-item-title {
+    flex:1; font-size:0.88rem; font-weight:500;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .btn-add-queue {
+    background:transparent; border:1px solid var(--border); color:var(--muted);
+    border-radius:6px; padding:3px 10px; font-size:12px; font-family:'DM Sans',sans-serif;
+    cursor:pointer; transition:all 0.2s; flex-shrink:0; font-weight:500;
+  }
+  .btn-add-queue:hover { border-color:var(--accent); color:var(--accent); }
+  .btn-add-queue.in-queue { border-color:var(--accent2); color:var(--accent2); }
+  .btn-add-queue.in-queue:hover { background:var(--accent2); color:#fff; }
+
+  .pl-empty-state {
+    text-align:center; padding:4rem 1rem; color:var(--muted);
+  }
+  .pl-empty-state .pl-empty-icon { font-size:52px; opacity:0.3; display:block; margin-bottom:12px; }
+  .pl-empty-state p { font-size:14px; }
 </style>
 </head>
 <body>
@@ -356,6 +544,7 @@
   <div class="logo">Music<span>Jury</span> <span class="saving" id="saving-indicator"></span></div>
   <div class="tabs">
     <button class="tab active" id="tab-vote" onclick="showPanel('vote')">&#127925; Votar</button>
+    <button class="tab" id="tab-playlist" onclick="showPanel('playlist')">&#9654;&#65039; Reproducir</button>
     <button class="tab" id="tab-admin" onclick="showPanel('admin')">&#127923; Admin</button>
   </div>
 </header>
@@ -408,6 +597,68 @@
 
     <div class="section-title">Canciones y resultados</div>
     <div id="admin-list"><p class="empty">Aun no hay canciones.</p></div>
+  </div>
+
+  <!-- PLAYLIST PANEL -->
+  <div id="panel-playlist">
+    <div id="pl-no-songs" class="pl-empty-state" style="display:none">
+      <span class="pl-empty-icon">&#127925;</span>
+      <p>El admin aún no ha añadido canciones.<br>Cuando haya canciones podrás añadirlas a tu cola.</p>
+    </div>
+    <div id="pl-main">
+      <!-- Song picker -->
+      <div class="song-picker">
+        <div class="song-picker-header">
+          <span class="song-picker-title">&#127911; Canciones disponibles</span>
+          <span class="song-picker-hint">Pulsa + para añadir a la cola</span>
+        </div>
+        <div class="picker-list" id="picker-list"></div>
+      </div>
+
+      <!-- Player + Queue -->
+      <div class="playlist-layout">
+        <!-- Left: Player -->
+        <div class="player-box">
+          <div class="player-video-wrap" id="pl-video-wrap">
+            <div class="player-idle">
+              <span class="player-idle-icon">&#127925;</span>
+              Añade canciones a la cola y pulsa <strong style="color:var(--accent)">Reproducir</strong>
+            </div>
+          </div>
+          <div class="player-info" id="pl-info" style="display:none">
+            <div class="player-info-text">
+              <div class="player-info-title" id="pl-title">—</div>
+              <div class="player-info-sub" id="pl-sub">Cola de reproducción</div>
+            </div>
+          </div>
+          <div class="player-controls">
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="ctrl-btn" id="ctrl-prev" onclick="plPrev()" disabled>&#9664;&#9664; Anterior</button>
+              <button class="ctrl-btn active" id="ctrl-play" onclick="plPlayPause()">&#9654; Reproducir</button>
+              <button class="ctrl-btn" id="ctrl-next" onclick="plNext()" disabled>Siguiente &#9654;&#9654;</button>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="ctrl-btn active" id="ctrl-shuffle" onclick="plToggleShuffle()" title="Aleatorio">&#128256; Aleatorio</button>
+              <button class="ctrl-btn active" id="ctrl-loop" onclick="plToggleLoop()" title="Bucle">&#128257; Bucle</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Queue -->
+        <div class="queue-box">
+          <div class="queue-header">
+            <span class="queue-title">&#128218; Cola</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="queue-count" id="queue-count">0 canciones</span>
+              <button class="ctrl-btn" style="padding:3px 10px;font-size:11px" onclick="plClearQueue()">Vaciar</button>
+            </div>
+          </div>
+          <div class="queue-list" id="queue-list">
+            <div class="queue-empty">La cola está vacía.<br>Añade canciones desde arriba.</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
 </main>
@@ -574,6 +825,9 @@ async function vote(songId, score) {
 function renderAll() {
   renderVoteList();
   renderAdminList();
+  if (document.getElementById("panel-playlist").classList.contains("active")) {
+    renderPickerList();
+  }
 }
 
 function toggleCard(songId) {
@@ -763,11 +1017,13 @@ function unhoverStars(songId, current) {
 // ============================================
 function showPanel(name) {
   if (name === "admin" && !adminUnlocked) { name = "login"; }
-  ["vote","admin","login"].forEach(function(p) {
+  ["vote","admin","login","playlist"].forEach(function(p) {
     document.getElementById("panel-" + p).classList.toggle("active", p === name);
   });
   document.getElementById("tab-vote").classList.toggle("active", name === "vote");
+  document.getElementById("tab-playlist").classList.toggle("active", name === "playlist");
   document.getElementById("tab-admin").classList.toggle("active", name === "admin" || name === "login");
+  if (name === "playlist") renderPickerList();
 }
 
 function tryLogin() {
@@ -786,9 +1042,268 @@ function onVoterNameChange() {
   renderVoteList();
 }
 
+
 // ============================================
-//  INIT
+//  PLAYLIST / PLAYER
 // ============================================
+var plQueue       = [];   // [{id, title, ytId}, ...]
+var plIndex       = -1;   // índice actual en plQueue
+var plShuffle     = true;
+var plLoop        = true;
+var plPlaying     = false;
+var plShuffleOrder = []; // orden aleatorio de índices
+
+function renderPickerList() {
+  var noSongs = document.getElementById("pl-no-songs");
+  var plMain  = document.getElementById("pl-main");
+  if (!songs.length) {
+    noSongs.style.display = "";
+    plMain.style.display  = "none";
+    return;
+  }
+  noSongs.style.display = "none";
+  plMain.style.display  = "";
+
+  var el = document.getElementById("picker-list");
+  el.innerHTML = songs.map(function(song) {
+    var inQueue = plQueue.some(function(q){ return q.id === song.id; });
+    return '<div class="picker-item" id="picker-item-' + song.id + '">' +
+      '<img class="picker-item-thumb"' +
+        ' src="https://img.youtube.com/vi/' + song.ytId + '/mqdefault.jpg"' +
+        ' onerror="this.src=\'https://img.youtube.com/vi/' + song.ytId + '/0.jpg\'">' +
+      '<span class="picker-item-title">' + song.title + '</span>' +
+      (inQueue
+        ? '<button class="btn-add-queue in-queue" onclick="plRemoveFromQueue(\'' + song.id + '\')">&#10003; En cola</button>'
+        : '<button class="btn-add-queue" onclick="plAddToQueue(\'' + song.id + '\')">&#43; Añadir</button>'
+      ) +
+    '</div>';
+  }).join("");
+}
+
+function plAddToQueue(songId) {
+  var song = songs.find(function(s){ return s.id === songId; });
+  if (!song || plQueue.some(function(q){ return q.id === songId; })) return;
+  plQueue.push({ id: song.id, title: song.title, ytId: song.ytId });
+  plRebuildShuffleOrder();
+  renderPickerList();
+  renderQueue();
+}
+
+function plRemoveFromQueue(songId) {
+  var wasPlayingId = plQueue[plGetRealIndex()] ? plQueue[plGetRealIndex()].id : null;
+  plQueue = plQueue.filter(function(q){ return q.id !== songId; });
+  plRebuildShuffleOrder();
+  // Adjust plIndex
+  if (!plQueue.length) {
+    plIndex = -1;
+    plStop();
+  } else {
+    // Find where the current song is now
+    if (wasPlayingId) {
+      var newReal = plQueue.findIndex(function(q){ return q.id === wasPlayingId; });
+      if (newReal === -1) {
+        plIndex = 0;
+        if (plPlaying) plLoadCurrent();
+      } else {
+        // find position in shuffleOrder
+        plIndex = plShuffleOrder.indexOf(newReal);
+        if (plIndex === -1) plIndex = 0;
+      }
+    }
+  }
+  renderPickerList();
+  renderQueue();
+}
+
+function plClearQueue() {
+  plQueue = [];
+  plShuffleOrder = [];
+  plIndex = -1;
+  plStop();
+  renderPickerList();
+  renderQueue();
+}
+
+function plRebuildShuffleOrder() {
+  plShuffleOrder = Array.from({length: plQueue.length}, function(_,i){ return i; });
+  // Fisher-Yates
+  for (var i = plShuffleOrder.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = plShuffleOrder[i]; plShuffleOrder[i] = plShuffleOrder[j]; plShuffleOrder[j] = tmp;
+  }
+}
+
+function plGetRealIndex() {
+  if (!plQueue.length || plIndex < 0) return -1;
+  if (plShuffle) {
+    return plShuffleOrder[plIndex % plShuffleOrder.length];
+  }
+  return plIndex % plQueue.length;
+}
+
+function plPlayPause() {
+  if (!plQueue.length) { alert("Añade al menos una canción a la cola primero."); return; }
+  if (!plPlaying) {
+    if (plIndex < 0) { plIndex = 0; }
+    plPlaying = true;
+    plLoadCurrent();
+  } else {
+    plStop();
+  }
+}
+
+function plStop() {
+  plPlaying = false;
+  document.getElementById("pl-video-wrap").innerHTML =
+    '<div class="player-idle"><span class="player-idle-icon">&#127925;</span>Pulsa <strong style="color:var(--accent)">Reproducir</strong> para empezar</div>';
+  document.getElementById("pl-info").style.display = "none";
+  document.getElementById("ctrl-play").innerHTML = "&#9654; Reproducir";
+  document.getElementById("ctrl-play").classList.add("active");
+  document.getElementById("ctrl-prev").disabled = true;
+  document.getElementById("ctrl-next").disabled = true;
+  renderQueue();
+}
+
+function plLoadCurrent() {
+  var real = plGetRealIndex();
+  if (real < 0 || real >= plQueue.length) { plStop(); return; }
+  var song = plQueue[real];
+
+  // Video
+  document.getElementById("pl-video-wrap").innerHTML =
+    '<iframe src="https://www.youtube.com/embed/' + song.ytId +
+    '?autoplay=1&rel=0&enablejsapi=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>';
+
+  // Info bar
+  document.getElementById("pl-info").style.display = "";
+  document.getElementById("pl-title").textContent = song.title;
+  document.getElementById("pl-sub").textContent =
+    (plIndex + 1) + ' / ' + plQueue.length + ' · ' +
+    (plShuffle ? "Aleatorio" : "Orden") + ' · ' +
+    (plLoop ? "Bucle activado" : "Sin bucle");
+
+  document.getElementById("ctrl-play").innerHTML = "&#9646;&#9646; Pausar";
+  document.getElementById("ctrl-play").classList.remove("active");
+  document.getElementById("ctrl-prev").disabled = (plQueue.length < 2);
+  document.getElementById("ctrl-next").disabled = (plQueue.length < 2);
+
+  renderQueue();
+
+  // Auto-advance via iframe onEnded is not reliable cross-origin;
+  // use a timed polling approach instead
+  plStartAutoAdvance(song.ytId);
+}
+
+var plAdvanceTimer = null;
+var plAdvanceYtId  = null;
+
+function plStartAutoAdvance(ytId) {
+  if (plAdvanceTimer) clearInterval(plAdvanceTimer);
+  plAdvanceYtId = ytId;
+  // We use YT postMessage API to detect end of video
+  window._plCurrentYtId = ytId;
+  // Fallback: listen to message events from YT iframe API
+}
+
+// Listen for YouTube iframe API messages
+window.addEventListener("message", function(e) {
+  if (!plPlaying) return;
+  try {
+    var data = (typeof e.data === "string") ? JSON.parse(e.data) : e.data;
+    // YT sends {event:"onStateChange", info:0} when ended
+    if (data && data.event === "onStateChange" && data.info === 0) {
+      plAdvanceNext();
+    }
+  } catch(err) {}
+});
+
+function plAdvanceNext() {
+  if (!plPlaying || !plQueue.length) return;
+  var maxIdx = plQueue.length - 1;
+  if (plIndex >= maxIdx) {
+    if (plLoop) {
+      plIndex = 0;
+      if (plShuffle) plRebuildShuffleOrder(); // reshuffle on loop
+      plLoadCurrent();
+    } else {
+      plStop();
+    }
+  } else {
+    plIndex++;
+    plLoadCurrent();
+  }
+}
+
+function plNext() {
+  if (!plQueue.length) return;
+  plPlaying = true;
+  plIndex = (plIndex + 1) % plQueue.length;
+  plLoadCurrent();
+}
+
+function plPrev() {
+  if (!plQueue.length) return;
+  plPlaying = true;
+  plIndex = (plIndex - 1 + plQueue.length) % plQueue.length;
+  plLoadCurrent();
+}
+
+function plToggleShuffle() {
+  plShuffle = !plShuffle;
+  var btn = document.getElementById("ctrl-shuffle");
+  btn.classList.toggle("active", plShuffle);
+  if (plShuffle) plRebuildShuffleOrder();
+  if (plPlaying) {
+    document.getElementById("pl-sub").textContent =
+      (plIndex + 1) + ' / ' + plQueue.length + ' · ' +
+      (plShuffle ? "Aleatorio" : "Orden") + ' · ' +
+      (plLoop ? "Bucle activado" : "Sin bucle");
+  }
+}
+
+function plToggleLoop() {
+  plLoop = !plLoop;
+  document.getElementById("ctrl-loop").classList.toggle("active", plLoop);
+  if (plPlaying) {
+    document.getElementById("pl-sub").textContent =
+      (plIndex + 1) + ' / ' + plQueue.length + ' · ' +
+      (plShuffle ? "Aleatorio" : "Orden") + ' · ' +
+      (plLoop ? "Bucle activado" : "Sin bucle");
+  }
+}
+
+function renderQueue() {
+  var el = document.getElementById("queue-list");
+  var countEl = document.getElementById("queue-count");
+  countEl.textContent = plQueue.length + (plQueue.length === 1 ? " canción" : " canciones");
+
+  if (!plQueue.length) {
+    el.innerHTML = '<div class="queue-empty">La cola está vacía.<br>Añade canciones desde arriba.</div>';
+    return;
+  }
+
+  var currentReal = plGetRealIndex();
+
+  // Build display order: if shuffle, show shuffleOrder; else sequential
+  var displayOrder = plShuffle
+    ? plShuffleOrder.map(function(realIdx){ return realIdx; })
+    : Array.from({length: plQueue.length}, function(_,i){ return i; });
+
+  el.innerHTML = displayOrder.map(function(realIdx, displayPos) {
+    var song = plQueue[realIdx];
+    var isCurrent = (realIdx === currentReal) && plPlaying;
+    return '<div class="queue-item' + (isCurrent ? ' playing' : '') + '">' +
+      '<img class="queue-item-thumb"' +
+        ' src="https://img.youtube.com/vi/' + song.ytId + '/mqdefault.jpg"' +
+        ' onerror="this.src=\'https://img.youtube.com/vi/' + song.ytId + '/0.jpg\'">' +
+      (isCurrent ? '<span class="queue-playing-badge">▶ NOW</span>' : '') +
+      '<span class="queue-item-title">' + song.title + '</span>' +
+      '<button class="queue-remove" onclick="plRemoveFromQueue(\'' + song.id + '\')" title="Quitar de la cola">&#10005;</button>' +
+    '</div>';
+  }).join("");
+}
+
+
 document.getElementById("voter-name").value = localStorage.getItem("mj_voter") || "";
 showPanel("vote");
 loadData();
