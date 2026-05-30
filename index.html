@@ -1154,6 +1154,10 @@ function plPlayPause() {
 
 function plStop() {
   plPlaying = false;
+  if (window.plYTPlayer) {
+    try { window.plYTPlayer.destroy(); } catch(e) {}
+    window.plYTPlayer = null;
+  }
   document.getElementById("pl-video-wrap").innerHTML =
     '<div class="player-idle"><span class="player-idle-icon">&#127925;</span>Pulsa <strong style="color:var(--accent)">Reproducir</strong> para empezar</div>';
   document.getElementById("pl-info").style.display = "none";
@@ -1169,10 +1173,9 @@ function plLoadCurrent() {
   if (real < 0 || real >= plQueue.length) { plStop(); return; }
   var song = plQueue[real];
 
-  // Video
-  document.getElementById("pl-video-wrap").innerHTML =
-    '<iframe src="https://www.youtube.com/embed/' + song.ytId +
-    '?autoplay=1&rel=0&enablejsapi=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>';
+  // Video — use YT IFrame API via global YT object
+  var wrap = document.getElementById("pl-video-wrap");
+  wrap.innerHTML = '<div id="pl-yt-player"></div>';
 
   // Info bar
   document.getElementById("pl-info").style.display = "";
@@ -1189,33 +1192,48 @@ function plLoadCurrent() {
 
   renderQueue();
 
-  // Auto-advance via iframe onEnded is not reliable cross-origin;
-  // use a timed polling approach instead
-  plStartAutoAdvance(song.ytId);
+  // Create YT Player
+  if (window.plYTPlayer) {
+    try { window.plYTPlayer.destroy(); } catch(e) {}
+    window.plYTPlayer = null;
+  }
+  if (window.YT && window.YT.Player) {
+    plCreateYTPlayer(song.ytId);
+  } else {
+    // Queue it for when API loads
+    window._plPendingYtId = song.ytId;
+  }
 }
 
-var plAdvanceTimer = null;
-var plAdvanceYtId  = null;
-
-function plStartAutoAdvance(ytId) {
-  if (plAdvanceTimer) clearInterval(plAdvanceTimer);
-  plAdvanceYtId = ytId;
-  // We use YT postMessage API to detect end of video
-  window._plCurrentYtId = ytId;
-  // Fallback: listen to message events from YT iframe API
-}
-
-// Listen for YouTube iframe API messages
-window.addEventListener("message", function(e) {
-  if (!plPlaying) return;
-  try {
-    var data = (typeof e.data === "string") ? JSON.parse(e.data) : e.data;
-    // YT sends {event:"onStateChange", info:0} when ended
-    if (data && data.event === "onStateChange" && data.info === 0) {
-      plAdvanceNext();
+function plCreateYTPlayer(ytId) {
+  window.plYTPlayer = new YT.Player('pl-yt-player', {
+    videoId: ytId,
+    playerVars: { autoplay: 1, rel: 0 },
+    events: {
+      onStateChange: function(event) {
+        if (event.data === YT.PlayerState.ENDED) {
+          plAdvanceNext();
+        }
+      }
     }
-  } catch(err) {}
-});
+  });
+}
+
+// Load YT IFrame API script once
+(function() {
+  if (document.getElementById('yt-iframe-api-script')) return;
+  var tag = document.createElement('script');
+  tag.id = 'yt-iframe-api-script';
+  tag.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(tag);
+})();
+
+window.onYouTubeIframeAPIReady = function() {
+  if (window._plPendingYtId) {
+    plCreateYTPlayer(window._plPendingYtId);
+    window._plPendingYtId = null;
+  }
+};
 
 function plAdvanceNext() {
   if (!plPlaying || !plQueue.length) return;
